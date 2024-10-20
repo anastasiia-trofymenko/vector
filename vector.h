@@ -235,7 +235,10 @@ class Vector {
    * equal to the end iterator if the Vector is empty.
    */
   iterator begin() {
+    if (empty())
+      return end();
 
+    return Iterator(values);
   }
 
   /*
@@ -243,16 +246,47 @@ class Vector {
    * element contained in the vector.
    */
   iterator end() {
-
+    return Iterator(values + sz);
   }
 
-  // const_iterator begin() const {
+  const_iterator begin() const {
+    return ConstIterator(values);
+  }
 
-  // }
+  const_iterator end() const{
+    return ConstIterator(values + sz);
+  }
 
-  // const_iterator end() const{
+  iterator insert(const_iterator pos, const_reference val) {
+    auto diff = pos - begin();
+    if (diff < 0 || static_cast<size_type>(diff) > sz)
+      throw std::runtime_error("Iterator out of bounds");
 
-  // }
+    size_type current{static_cast<size_type>(diff)};
+    if (sz >= max_sz)
+      /* Attention special case, if no minimum size is defined */
+      reserve (max_sz * 2);
+
+    for (auto i{sz}; i-- > current;)
+      values[i + 1] = values[i];
+
+    values[current] = val;
+    ++sz;
+    return iterator{values + current };
+  }
+
+  iterator erase(const_iterator pos) {
+    auto diff = pos - begin ();
+    if (diff < 0 || static_cast<size_type>(diff) >= sz)
+      throw std::runtime_error("Iterator out of bounds");
+
+    size_type current{static_cast<size_type>(diff)};
+    for (auto i{current}; i < sz-1; ++i)
+      values[i] = values[i + 1];
+
+    --sz;
+    return iterator{values+current};
+  }
 
   class Iterator {
     public :
@@ -263,30 +297,62 @@ class Vector {
       using iterator_category = std::forward_iterator_tag;
 
     private :
-      //Instance variables
+      /* Instance variables */
       pointer ptr;
 
-    public : //Member Functions
+    public : /* Member Functions */
       Iterator () : ptr{nullptr} {}
 
-      // Parameter list
       Iterator(pointer ptr) : ptr{ptr} {}
 
       reference operator*() const {
         return *ptr;
       }
 
-    /* Returns a pointer to the value referenced by the iterator */
-      pointer operator->() {
+      /* Returns a pointer to the value referenced by the iterator */
+      pointer operator->() const {
         return ptr;
       }
 
-      bool operator==(const const_iterator&) const {
+      /*
+       * Compares whether the two pointers are the same. (A global function
+       * might be a better choice.)
+       */
+      bool operator==(const const_iterator& other) const {
+        return this->ptr == other.ptr;
+      }
 
+      bool operator!=(const const_iterator& other) const {
+        return this->ptr != other.ptr;
+      }
+
+      /*
+       * (Prefix) Iterator is switched to the next element in the Vector. The
+       * method returns a reference to the changed iterator.
+       */
+      iterator& operator++() {
+        ++ptr;
+        return *this;
+      }
+
+      /*
+       * (Postfix) Iterator is switched to the next element in Vector. A copy of
+       * the original iterator is returned.
+       */
+      iterator operator++(int) {
+        Iterator res = *this;
+        ++ptr;
+        return res;
+      }
+
+      /* (type conversion) Allows the conversion of Iterator to ConstIterator */
+      operator const_iterator() const {
+        return ConstIterator(ptr);
       }
     };
 
   class ConstIterator {
+    friend class Iterator;
     public :
       using value_type = Vector::value_type;
       using reference = Vector::const_reference;
@@ -295,11 +361,50 @@ class Vector {
       using iterator_category = std::forward_iterator_tag;
 
     private :
-      //Instance variables
+      /* Instance variables */
+      pointer ptr;
 
     public :
-      //Member Functions
+      /* Member Functions */
+      ConstIterator() : ptr{nullptr} {}
+      ConstIterator(pointer ptr) : ptr{ptr} {}
+
+      reference operator*() const {
+        return *ptr;
+      }
+
+      pointer operator->() const{
+        return ptr;
+      }
+
+      bool operator==(const const_iterator& other) const {
+        return ptr == other.ptr;
+      }
+
+      bool operator!=(const const_iterator& other) const {
+        return ptr != other.ptr;
+      }
+
+      const_iterator& operator++() {
+        ++ptr;
+        return *this;
+      }
+
+      const_iterator operator++(int) {
+        ConstIterator res = *this;
+        ++ptr;
+        return res;
+      }
+
+      friend Vector::difference_type
+      operator-(const Vector::ConstIterator& lop,
+                const Vector::ConstIterator& rop);
   };
 };
+
+Vector::difference_type operator-(const Vector::ConstIterator& lop,
+                                  const Vector::ConstIterator& rop) {
+  return lop.ptr - rop.ptr;
+}
 
 #endif
