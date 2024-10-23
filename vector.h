@@ -119,6 +119,10 @@ class Vector {
   }
 
   void reserve(size_type n) {
+    /* Do nothing if 0 size given */
+    if (!n)
+      return;
+
     /* Do nothing if memory is already allocated and there is enough space */
     if (values && n <= max_sz)
       return;
@@ -264,8 +268,11 @@ class Vector {
 
     size_type current{static_cast<size_type>(diff)};
     if (sz >= max_sz)
-      /* Attention special case, if no minimum size is defined */
-      reserve (max_sz * 2);
+      /*
+       * Double the available space or allocate min_capacity cells if space has
+       * not been allocated yet
+       */
+      reserve (max_sz ? max_sz * 2 : min_capacity);
 
     for (auto i{sz}; i-- > current;)
       values[i + 1] = values[i];
