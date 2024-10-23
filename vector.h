@@ -7,13 +7,14 @@
 
 using namespace std;
 
+template<typename Type>
 class Vector {
  public:
   class ConstIterator;
   class Iterator;
-  using value_type = double;
-  using size_type = std::size_t;
-  using difference_type = std::ptrdiff_t;
+  using value_type = Type;
+  using size_type = size_t;
+  using difference_type = ptrdiff_t;
   using reference = value_type&;
   using const_reference = const value_type&;
   using pointer = value_type*;
@@ -412,13 +413,10 @@ class Vector {
 
       friend Vector::difference_type
       operator-(const Vector::ConstIterator& lop,
-                const Vector::ConstIterator& rop);
+                const Vector::ConstIterator& rop) {
+        return lop.ptr - rop.ptr;
+      }
   };
 };
-
-Vector::difference_type operator-(const Vector::ConstIterator& lop,
-                                  const Vector::ConstIterator& rop) {
-  return lop.ptr - rop.ptr;
-}
 
 #endif
