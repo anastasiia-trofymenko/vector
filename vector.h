@@ -300,6 +300,9 @@ class Vector {
       /* Instance variables */
       pointer ptr;
 
+      /* For seured iterators */
+      // pointer end;
+
     public : /* Member Functions */
       Iterator () : ptr{nullptr} {}
 
@@ -331,6 +334,10 @@ class Vector {
        * method returns a reference to the changed iterator.
        */
       iterator& operator++() {
+        /* In case of secured iterators uncomment this */
+        // if(ptr==end)
+        //   return *this;
+
         ++ptr;
         return *this;
       }
